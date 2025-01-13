@@ -1,4 +1,4 @@
-# **2. Bash Advance **
+# **2. Bash Advance**
 
 ## Bash
 
