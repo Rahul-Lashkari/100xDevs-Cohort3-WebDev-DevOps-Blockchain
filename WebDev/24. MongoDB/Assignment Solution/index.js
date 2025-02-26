@@ -8,7 +8,7 @@ const app = express();
 
 app.use(express.json());
 
-mongoose.connect("mongodb+srv://admin:pikachu@cluster0.gy7z2.mongodb.net/todo");
+mongoose.connect("");
 
 const JWT_SECRET = "charizard";
 

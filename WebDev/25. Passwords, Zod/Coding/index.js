@@ -1,8 +1,12 @@
 const express = require("express");
-const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const { z } = require("zod");
 
 const { UserModel, TodoModel } = require("./db");
+
+const { auth, JWT_SECRET } = require("./auth");
 
 const app = express();
 
@@ -10,21 +14,37 @@ app.use(express.json());
 
 mongoose.connect("");
 
-const JWT_SECRET = "charizard";
-
 app.post("/signup", async function (req, res) {
+    const requireBody = z.object({
+        email: z.string().min(3).max(100).email(), 
+        password: z.string().min(3).max(100), 
+        name: z.string().min(3).max(100),
+    });
+
+    const parseDataWithSuccess = requireBody.safeParse(req.body);
+
+    if (!parseDataWithSuccess.success) {
+        return res.json({
+            message: "Incorrect data format",
+            error: parseDataWithSuccess.error,
+        });
+    }
+
     const email = req.body.email;
     const password = req.body.password;
     const name = req.body.name;
 
+    const hashedPassword = await bcrypt.hash(password, 5);
+    // console.log(hashedPassword);
+
     try {
         await UserModel.create({
             email: email,
-            password: password,
+            password: hashedPassword,
             name: name,
         });
     } catch (error) {
-        return res.status(400).json({
+        return res.json({
             message: "User already exists!",
         });
     }
@@ -40,10 +60,17 @@ app.post("/signin", async function (req, res) {
 
     const user = await UserModel.findOne({
         email: email,
-        password: password,
     });
 
-    if (user) {
+    if (!user) {
+        return res.status(403).json({
+            message: "Invalid Credentials!",
+        });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (passwordMatch) {
         const token = jwt.sign(
             {
                 id: user._id.toString(),
@@ -61,22 +88,6 @@ app.post("/signin", async function (req, res) {
         });
     }
 });
-
-function auth(req, res, next) {
-    const token = req.headers.authorization;
-
-    const decodedData = jwt.verify(token, JWT_SECRET);
-
-    if (decodedData) {
-        req.userId = decodedData.id;
-
-        next();
-    } else {
-        res.status(403).json({
-            message: "Invalid Token!",
-        });
-    }
-}
 
 app.post("/todo", auth, async function (req, res) {
     const userId = req.userId;
