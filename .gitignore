@@ -1,3 +1,5 @@
 
 .gitattributes
 /**/node_modules/
+/**/.env
+/**/.dist
