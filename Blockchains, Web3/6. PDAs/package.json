@@ -1,0 +1,14 @@
+{
+  "name": "solana-pda-example",
+  "version": "1.0.0",
+  "description": "Program Derived Address examples",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@solana/web3.js": "^1.91.0",
+    "@solana/spl-token": "^0.4.0"
+  }
+}
